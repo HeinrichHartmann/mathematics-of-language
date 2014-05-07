@@ -244,6 +244,23 @@ Hence, for $P \in \PROB_f(\SEQ A)$, with $P[\len \geq N] > 0$ we can define the
            \sum_{i \geq 1} \PR{i}{N}_* P \;\in\; \PROB(A^N). \]
 Note, that the special case of $N=1$ reduces to our earlier definition.
 
+\subsubsection{From Language Models to smoothed $N$-gram models}
+Let $P \in \PROB(\SEQ A)$ be a Language Model and $D^mP \in \PROB (A^m)$ the corresponding total $m$-gram distributions. 
+For a fixed $n\in \IN$, we take $\lambda_1,\dots,\lambda_n$ such that $\sum_{i=1}^n\lambda_i=1$ and $\forall s\in\SEQ^{\leq n}$ we can define 
+\[S^nP(s):=\sum_{i=1}^n\lambda_i\delta_{i}[s]D^iP(s) \]
+where
+\[\delta_i[s]=
+\begin{cases}
+1  & length(s) = i  \\
+0  & length(s) \neq i
+\end{cases}\]
+We call $S^nP$ the induced smoothed $n$-gram model. 
+In order to see that $S^nP\in\PROB(\SEQ^{\leq n})$ and have a look at the following calculation.
+\[\sum_{s\in\SEQ^{\leq n}A}S^nP = (\sum_{a\in A}\lambda_1D^1P(a) + \dots + \sum_{s'\in A^n}\lambda_nD^nP(s') ) = \lambda_n+\dots+\lambda_1 = 1\]
+Obviously there was a a choice while adding the lower order distributions. 
+
+\textbf{One importent observation is that }
+
 \subsubsection{From $N$-gram measures to Language Models}
 \textbf{this section is work in progress}
 We have to see if a similar argument holds to construct a Language Model from and $N$-gram measure. 
@@ -265,6 +282,50 @@ We still define the backoff operator as $\BACK{N}:=D^{N-1} \circ B^{N}$ in this 
 
 \textit{discuss what happens in the boundary case when applying the backoff operator to a unigram model. Also discuss if the index should have been shifted by one.}
 \textit{I am not to happy with choosing partial as a symbol. There are several reasons. 1.) it was used for skips with a subindex 2.) we might want to define something like $\partial_M^N$ for converting between models. 3.) the resulting sequence is not really a complex since applying $\partial$ twice in general will not result to the null map (also the spaces are not abelian groups as far as I understand) 3.) $\partial$ as well as $B$ don't reflect the arbitrary choice that was being made}
+\textbf{maybe it would have been a better choice if the backoff operator was defined on the filtrations (this would work but seems more complicated right now)}
+
+\subsection{Introducing skips to sequences}
+So far we have a clear understanding of what a Language Model is. 
+We have also defined (the induced) $n$-gram models as well as (the induced and) smoothed $n$-gram Models. 
+We now want to see if we can define sequences which contain skips and measure their probabilities. In order to do so let us start with a small observation:
+
+\subsubsection{Chain rule of probability functions}
+Let $P\in \PROB(\SEQ A)$ be a language model and $s=(w_1,\dots,w_l)\in \SEQ A$ be a sentence.
+We can have a look at $P(s) = P(w_1^l)$. 
+In the literature \cite{CHENGOODMAN:1999} we will often find that $P(s)=P(w_1^l)=P(w_l|w_1^{l-1})P(w_1^{l-1})$.
+This formula can be further expanded to:
+\[P(w_1^n)=P(w_n|w_1^{n-1})P(w_{n-1}|w_1^{n-2})\dots P(w_2|w_1)P(w_1)\]
+While this formula makes perfect sense for $P\in\PROB(\SEQ A)$ this formula makes no sense for $n$-gram models which are usually the models in the literature where this formula is applied to. 
+
+So let us assume we have $D^lP(s)$ (remember $length(s)=l$). 
+We cannot write 
+\[D^lP(w_1^l) = D^lP(w_l|w_1^{l-1})D^lP(w_1^{l-1})\]
+since $D^lP(w_1^{l-1})$ is not defined.
+We can give this formula a sense by setting:
+\[\partial_{l}w_1^{l} := w_1^{l-1}\_:=\{s=(a_1,\dots,a_l)\in A^l | a_1=w_i,\dots a_{l-1}=w_{l-1}, a_l \in A \}\]
+We can now write:
+\[D^lP(w_1^l) = D^lP(w_l|w_1^{l-1})D^lP(w_1^{l-1}\_)\]
+and again expand this again to:
+\[D^lP(w_1^l) = D^lP(w_l|w_1^{l-1})D^lP(w_{l-1}\_|w_1^{l-2})\dots D^lP(w_1\underbrace{\_\dots\_}_{l-1 skips})\]
+As we see skips are being introduced in a very natural way just by doing proper probability theory.
+There are two interesting questions:
+\begin{enumerate}
+\item An interesting question is how do $D^{l-1}P(w_1^{l-1})$ and $D^lP(w_1^{l-1}\_)$ relate to each other? In many papers we see a lot of authors just using the unigram model $D^1P(w_1)$ instead of $D^lP(w_1^{l-1}\_)$.
+\item Can the skips be defined at other (potentially many) places to give this formula a sense?
+\end{enumerate}
+
+\subsubsection{Skips at arbitrary places}
+In an analogous way one use the chain rule to define skips at arbitrary positions.
+
+\subsubsection{Part of speeches as another form of skips}
+\textbf{this paragraph is work in progress}
+Let $s=(a_1,\dots,a_l) \in A^l$ be a sequence, $p=(pos_1,\dots,pos_l)$ the corresponding part of speech tags and $P\in \PROB (A)$ an $l$-gram model. 
+We can define
+\[\rho_iP(s) := P(a_1,\dots,a_{i-1},pos_i,a_{i+1},\dots,a_l):= \{ (a_1,\dots,a_l) | POS(a_i)=pos_i \}\]
+\textit{The question is if this definition makes sense at all since part of speach tags might only be well defined for a sentence. Also we could have defined rho as a set operation completly without probabilities}
+
+We can now use this again for the chain rule and define a way of calculating probabilities using part of speech tags as well as skips
+
 \subsection{Markov measures}
 
 A probability measure $P$ on $\SEQ A$ is called $K$-Markov if
@@ -315,8 +376,6 @@ and
     & \dots \\
     & P[\pr{0} = a_{0}]
 \end{align*}
-
-\subsection{How to see smoothing}
 
 \subsection{How to understand skipped $n$-grams}
 
